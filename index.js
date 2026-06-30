@@ -15,7 +15,15 @@ if (!version) {
   process.exit(1);
 }
 
-const url = `https://downloads.openwrt.org/releases/${version}/targets/`;
+const isSnapshot =
+    version.toLowerCase() === "snapshot" ||
+    version.toLowerCase() === "snapshots";
+
+const baseUrl = isSnapshot
+    ? "https://downloads.openwrt.org/snapshots"
+    : `https://downloads.openwrt.org/releases/${version}`;
+
+const url = `${baseUrl}/targets/`;
 
 async function fetchHTML(url) {
   try {
