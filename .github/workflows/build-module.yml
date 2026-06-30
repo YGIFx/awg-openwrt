@@ -200,6 +200,12 @@ jobs:
           echo "Built packages:"
           ls -la awgrelease/
 
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: awg-openwrt-snapshot-mediatek-filogic
+          path: awgrelease/*.apk
+          
       - name: Release
         uses: softprops/action-gh-release@v1
         with:
