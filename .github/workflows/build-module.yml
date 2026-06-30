@@ -101,16 +101,24 @@ jobs:
           echo "pkgarch: ${{ matrix.build_env.pkgarch}}, target:${{ matrix.build_env.target}}, subtarget: ${{ matrix.build_env.subtarget}}"
 
           # Get the actual SDK filename from the directory listing
-          SDK_FILE=$(curl -s "https://downloads.openwrt.org/releases/${{ matrix.build_env.tag }}/targets/${{ matrix.build_env.target}}/${{ matrix.build_env.subtarget}}/" | grep -o "openwrt-sdk-${{ matrix.build_env.tag }}-${{ matrix.build_env.target}}-${{ matrix.build_env.subtarget}}_gcc-[^\"]*_musl[^\"]*\.Linux-x86_64\.tar\.[xz|zst]*" | head -n1)
-          
+          if [ "${{ matrix.build_env.tag }}" = "snapshot" ] || [ "${{ matrix.build_env.tag }}" = "snapshots" ]; then
+            SDK_BASE_URL="https://downloads.openwrt.org/snapshots/targets/${{ matrix.build_env.target}}/${{ matrix.build_env.subtarget}}"
+            SDK_PATTERN='openwrt-sdk-${{ matrix.build_env.target}}-${{ matrix.build_env.subtarget}}_gcc-[^"]*_musl[^"]*\.Linux-x86_64\.tar\.\(xz\|zst\)'
+          else
+            SDK_BASE_URL="https://downloads.openwrt.org/releases/${{ matrix.build_env.tag }}/targets/${{ matrix.build_env.target}}/${{ matrix.build_env.subtarget}}"
+            SDK_PATTERN='openwrt-sdk-${{ matrix.build_env.tag }}-${{ matrix.build_env.target}}-${{ matrix.build_env.subtarget}}_gcc-[^"]*_musl[^"]*\.Linux-x86_64\.tar\.\(xz\|zst\)'
+          fi
+
+          SDK_FILE=$(curl -s "$SDK_BASE_URL/" | grep -o "$SDK_PATTERN" | head -n1)
+
           if [ -z "$SDK_FILE" ]; then
             echo "SDK file not found for ${{ matrix.build_env.tag }} ${{ matrix.build_env.target}} ${{ matrix.build_env.subtarget}}"
             exit 1
           fi
-          
-          SDK_DOWNLOAD_URL="https://downloads.openwrt.org/releases/${{ matrix.build_env.tag }}/targets/${{ matrix.build_env.target}}/${{ matrix.build_env.subtarget}}/${SDK_FILE}"
+
+          SDK_DOWNLOAD_URL="$SDK_BASE_URL/$SDK_FILE"
           echo "Downloading SDK: $SDK_DOWNLOAD_URL"
-          
+
           wget "$SDK_DOWNLOAD_URL"
           
           # Extract based on file extension
